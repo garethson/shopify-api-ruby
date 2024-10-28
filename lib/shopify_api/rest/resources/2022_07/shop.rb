@@ -38,7 +38,7 @@ module ShopifyAPI
       @finances = T.let(nil, T.nilable(T::Boolean))
       @force_ssl = T.let(nil, T.nilable(T::Boolean))
       @google_apps_domain = T.let(nil, T.nilable(String))
-      @google_apps_login_enabled = T.let(nil, T.nilable(String))
+      @google_apps_login_enabled = T.let(nil, T.nilable(T::Boolean))
       @has_discounts = T.let(nil, T.nilable(T::Boolean))
       @has_gift_cards = T.let(nil, T.nilable(T::Boolean))
       @has_storefront = T.let(nil, T.nilable(T::Boolean))
@@ -123,7 +123,7 @@ module ShopifyAPI
     attr_reader :force_ssl
     sig { returns(T.nilable(String)) }
     attr_reader :google_apps_domain
-    sig { returns(T.nilable(String)) }
+    sig { returns(T.nilable(T::Boolean)) }
     attr_reader :google_apps_login_enabled
     sig { returns(T.nilable(T::Boolean)) }
     attr_reader :has_discounts
@@ -214,6 +214,16 @@ module ShopifyAPI
         )
 
         T.cast(response, T::Array[Shop])
+      end
+
+      sig do
+        params(
+          fields: T.untyped,
+          session: Auth::Session,
+        ).returns(T.nilable(Shop))
+      end
+      def current(fields: nil, session: ShopifyAPI::Context.active_session)
+        all(session: session, fields: fields).first
       end
 
     end

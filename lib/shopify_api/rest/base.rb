@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "active_support/inflector"
+require "active_support/core_ext/hash/indifferent_access"
 
 module ShopifyAPI
   module Rest
@@ -16,6 +17,7 @@ module ShopifyAPI
       @paths = T.let([], T::Array[T::Hash[Symbol, T.any(T::Array[Symbol], String, Symbol)]])
       @custom_prefix = T.let(nil, T.nilable(String))
       @read_only_attributes = T.let([], T.nilable(T::Array[Symbol]))
+      @atomic_hash_attributes = T.let([], T::Array[Symbol])
       @aliased_properties = T.let({}, T::Hash[String, String])
 
       sig { returns(T::Hash[Symbol, T.untyped]) }
@@ -60,6 +62,9 @@ module ShopifyAPI
 
         sig { returns(T::Hash[Symbol, T::Class[T.anything]]) }
         attr_reader :has_one
+
+        sig { returns(T.nilable(T::Array[Symbol])) }
+        attr_reader :atomic_hash_attributes
 
         sig { returns(T.nilable(T::Hash[T.any(Symbol, String), String])) }
         attr_accessor :headers
@@ -248,7 +253,7 @@ module ShopifyAPI
         def create_instances_from_response(response:, session:)
           objects = []
 
-          body = T.cast(response.body, T::Hash[String, T.untyped])
+          body = T.cast(response.body, T::Hash[String, T.untyped]).with_indifferent_access
 
           response_names = json_response_body_names
 
@@ -417,6 +422,7 @@ module ShopifyAPI
         ShopifyAPI::Utils::AttributesComparator.compare(
           stringified_updatable_attributes,
           stringified_new_attributes,
+          atomic_hash_attributes: self.class.atomic_hash_attributes || [],
         )
       end
 
